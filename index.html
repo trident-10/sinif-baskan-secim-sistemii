@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sınıf Başkan Seçim Sistemi</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+            color: #1f3c88;
+        }
+
+        .header p {
+            margin: 0;
+            color: #666;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #1f3c88;
+            font-size: 22px;
+        }
+
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 15px;
+            margin-top: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #1f3c88;
+            color: white;
+        }
+
+        .btn-success {
+            background: #198754;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #222;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #eef2ff;
+        }
+
+        .result-box {
+            background: #eef8f0;
+            border-left: 5px solid #198754;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            line-height: 1.7;
+        }
+
+        .message {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .message.error {
+            display: block;
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .message.success {
+            display: block;
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .small-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        @media (max-width: 800px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sınıf Başkan Seçim Sistemi</h1>
+            <p>Öğrenci listesinden her gün rastgele bir başkan ve bir başkan yardımcısı seçer.</p>
+        </div>
+
+        <div class="grid">
+            <div class="card full-width">
+                <h2>Bugünün Seçimi</h2>
+                <p class="small-text">Seçilen öğrenciler liste tamamlanana kadar tekrar seçilmez.</p>
+
+                <button class="btn-success" onclick="selectStudents()">Başkan ve Yardımcı Seç</button>
+
+                <div id="result" class="result-box" style="display: none;"></div>
+            </div>
+
+            <div class="card full-width">
+                <h2>Öğrenci Listesi</h2>
+                <div class="actions">
+                    <button class="btn-warning" onclick="resetSelectedList()">Sadece Seçilenleri Sıfırla</button>
+                    <button class="btn-secondary" onclick="clearHistory()">Seçim Geçmişini Temizle</button>
+                    <button class="btn-danger" onclick="clearAllData()">Tüm Verileri Sil</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Ad Soyad</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card full-width">
+                <h2>Seçim Geçmişi</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Başkan</th>
+                            <th>Başkan Yardımcısı</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Öğrenci Ekle</h2>
+
+                <label for="studentNumber">Okul Numarası</label>
+                <input type="number" id="studentNumber" placeholder="Örnek: 1001" />
+
+                <label for="studentName">Ad Soyad</label>
+                <input type="text" id="studentName" placeholder="Örnek: Ahmet Yılmaz" />
+
+                <button class="btn-primary" onclick="addStudent()">Öğrenci Ekle</button>
+
+                <div id="addMessage" class="message"></div>
+            </div>
+
+            <div class="card">
+                <h2>Toplu Öğrenci Ekle</h2>
+                <p class="small-text">Her satıra bir öğrenci yaz. Format: <b>1001, Ahmet Yılmaz</b></p>
+                <input type="file" id="csvFile" accept=".txt,.csv" />
+                <button class="btn-secondary" onclick="importStudentsFromFile()">Dosyadan Öğrencileri Yükle</button>
+                <div id="fileMessage" class="message"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let students = JSON.parse(localStorage.getItem("students")) || [];
+        let history = JSON.parse(localStorage.getItem("history")) || [];
+
+        function saveData() {
+            localStorage.setItem("students", JSON.stringify(students));
+            localStorage.setItem("history", JSON.stringify(history));
+        }
+
+        function showMessage(elementId, text, type) {
+            const messageBox = document.getElementById(elementId);
+            messageBox.textContent = text;
+            messageBox.className = "message " + type;
+
+            setTimeout(() => {
+                messageBox.style.display = "none";
+            }, 3000);
+        }
+
+        function addStudent() {
+            const numberInput = document.getElementById("studentNumber");
+            const nameInput = document.getElementById("studentName");
+
+            const number = numberInput.value.trim();
+            const name = nameInput.value.trim();
+
+            if (number === "" || name === "") {
+                showMessage("addMessage", "Lütfen öğrenci numarası ve ad soyad giriniz.", "error");
+                return;
+            }
+
+            const exists = students.some(student => student.number === number);
+
+            if (exists) {
+                showMessage("addMessage", "Bu okul numarası zaten eklenmiş.", "error");
+                return;
+            }
+
+            students.push({
+                number: number,
+                name: name,
+                selected: false
+            });
+
+            saveData();
+            renderStudents();
+
+            numberInput.value = "";
+            nameInput.value = "";
+
+            showMessage("addMessage", "Öğrenci başarıyla eklendi.", "success");
+        }
+
+        function selectStudents() {
+            if (students.length < 2) {
+                alert("En az 2 öğrenci eklemelisiniz.");
+                return;
+            }
+
+            let availableStudents = students.filter(student => student.selected === false);
+
+            if (availableStudents.length < 2) {
+                alert("Seçilmemiş yeterli öğrenci kalmadı. Listeyi sıfırlamanız gerekir.");
+                return;
+            }
+
+            const firstRandomIndex = Math.floor(Math.random() * availableStudents.length);
+            const president = availableStudents[firstRandomIndex];
+
+            availableStudents.splice(firstRandomIndex, 1);
+
+            const secondRandomIndex = Math.floor(Math.random() * availableStudents.length);
+            const assistant = availableStudents[secondRandomIndex];
+
+            students = students.map(student => {
+                if (student.number === president.number || student.number === assistant.number) {
+                    return {
+                        ...student,
+                        selected: true
+                    };
+                }
+                return student;
+            });
+
+            const today = new Date().toLocaleDateString("tr-TR");
+
+            history.push({
+                date: today,
+                president: president.number + " - " + president.name,
+                assistant: assistant.number + " - " + assistant.name
+            });
+
+            saveData();
+            renderStudents();
+            renderHistory();
+
+            const resultBox = document.getElementById("result");
+            resultBox.style.display = "block";
+            resultBox.innerHTML = `
+                <strong>Başkan:</strong> ${president.number} - ${president.name}<br>
+                <strong>Başkan Yardımcısı:</strong> ${assistant.number} - ${assistant.name}
+            `;
+        }
+
+        function renderStudents() {
+            const tableBody = document.getElementById("studentTableBody");
+            tableBody.innerHTML = "";
+
+            if (students.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4">Henüz öğrenci eklenmedi.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            students.forEach((student, index) => {
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${student.number}</td>
+                    <td>${student.name}</td>
+                    <td>${student.selected ? "Seçildi" : "Seçilmedi"}</td>
+                    <td><button class="btn-danger" onclick="deleteStudent(${index})">Sil</button></td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function renderHistory() {
+            const tableBody = document.getElementById("historyTableBody");
+            tableBody.innerHTML = "";
+
+            if (history.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3">Henüz seçim yapılmadı.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            history.forEach(record => {
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${record.date}</td>
+                    <td>${record.president}</td>
+                    <td>${record.assistant}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function deleteStudent(index) {
+            const confirmDelete = confirm("Bu öğrenciyi silmek istediğinizden emin misiniz?");
+
+            if (!confirmDelete) {
+                return;
+            }
+
+            students.splice(index, 1);
+            saveData();
+            renderStudents();
+        }
+
+        function resetSelectedList() {
+            const confirmReset = confirm("Sadece seçildi/seçilmedi bilgileri sıfırlanacak. Geçmiş korunacak. Emin misiniz?");
+
+            if (!confirmReset) {
+                return;
+            }
+
+            students = students.map(student => {
+                return {
+                    ...student,
+                    selected: false
+                };
+            });
+
+            saveData();
+            renderStudents();
+
+            alert("Seçilenler sıfırlandı. Tüm öğrenciler tekrar seçilebilir.");
+        }
+
+        function clearHistory() {
+            const confirmClearHistory = confirm("Seçim geçmişi silinecek. Öğrenci listesi korunacak. Emin misiniz?");
+
+            if (!confirmClearHistory) {
+                return;
+            }
+
+            history = [];
+            localStorage.removeItem("history");
+            renderHistory();
+
+            document.getElementById("result").style.display = "none";
+            alert("Seçim geçmişi temizlendi.");
+        }
+
+        function clearAllData() {
+            const confirmClear = confirm("Tüm öğrenciler ve seçim geçmişi silinecek. Emin misiniz?");
+
+            if (!confirmClear) {
+                return;
+            }
+
+            students = [];
+            history = [];
+            localStorage.removeItem("students");
+            localStorage.removeItem("history");
+
+            renderStudents();
+            renderHistory();
+
+            document.getElementById("result").style.display = "none";
+        }
+
+        function importStudentsFromFile() {
+            const fileInput = document.getElementById("csvFile");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showMessage("fileMessage", "Lütfen bir .txt veya .csv dosyası seçiniz.", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const content = event.target.result;
+                const lines = content.split("\n");
+
+                let addedCount = 0;
+                let skippedCount = 0;
+
+                lines.forEach(line => {
+                    const cleanLine = line.trim();
+
+                    if (cleanLine === "") {
+                        return;
+                    }
+
+                    const parts = cleanLine.split(",");
+
+                    if (parts.length < 2) {
+                        skippedCount++;
+                        return;
+                    }
+
+                    const number = parts[0].trim();
+                    const name = parts.slice(1).join(",").trim();
+
+                    if (number === "" || name === "") {
+                        skippedCount++;
+                        return;
+                    }
+
+                    const exists = students.some(student => student.number === number);
+
+                    if (exists) {
+                        skippedCount++;
+                        return;
+                    }
+
+                    students.push({
+                        number: number,
+                        name: name,
+                        selected: false
+                    });
+
+                    addedCount++;
+                });
+
+                saveData();
+                renderStudents();
+
+                showMessage(
+                    "fileMessage",
+                    addedCount + " öğrenci eklendi. " + skippedCount + " satır atlandı.",
+                    "success"
+                );
+
+                fileInput.value = "";
+            };
+
+            reader.readAsText(file, "UTF-8");
+        }
+
+        renderStudents();
+        renderHistory();
+    </script>
+</body>
+</html>
